@@ -70,6 +70,7 @@ syspaths="/sys/class/video/
 /sys/class/vfm/map
 /dev/video10
 /sys/module/di/parameters/bypass_all
+/sys/module/di/parameters/bypass_hd
 /sys/module/amlvideodri/parameters/freerun_mode
 /sys/class/amhdmitx/amhdmitx0/frac_rate_policy
 /sys/module/di/parameters/bypass_prog

@@ -24,12 +24,12 @@ index 10e73cc74f..faa42d66cb 100644
 +  if (am_private->video_format == VFORMAT_VC1)
 +  {
 +    SysfsUtils::SetInt("/sys/module/di/parameters/bypass_prog", 0);
-+    SysfsUtils::SetInt("/sys/module/di/parameters/bypass_all", 0);
++    SysfsUtils::SetInt("/sys/module/di/parameters/bypass_hd", 0);
 +  }
 +  else
 +  {
 +    SysfsUtils::SetInt("/sys/module/di/parameters/bypass_prog", 1);
-+    SysfsUtils::SetInt("/sys/module/di/parameters/bypass_all", 1);
++    SysfsUtils::SetInt("/sys/module/di/parameters/bypass_hd", 1);
 +  }
 +
    switch(am_private->video_format)
