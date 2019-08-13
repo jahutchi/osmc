@@ -1,0 +1,137 @@
+diff --git a/addons/skin.estuary/xml/DialogSeekBar.xml b/addons/skin.estuary/xml/DialogSeekBar.xml
+index aeb44f9287..5a96f266bf 100644
+--- a/addons/skin.estuary/xml/DialogSeekBar.xml
++++ b/addons/skin.estuary/xml/DialogSeekBar.xml
+@@ -84,7 +84,7 @@
+ 					</include>
+ 				</control>
+ 				<control type="group">
+-					<visible>PVR.IsRecordingPlayingChannel + !Player.ChannelPreviewActive</visible>
++					<visible>[PVR.IsRecordingPlayingChannel | PVR.IsPlayingActiveRecording] + !Player.ChannelPreviewActive</visible>
+ 					<control type="image">
+ 						<top>100</top>
+ 						<left>20</left>
+diff --git a/xbmc/GUIInfoManager.cpp b/xbmc/GUIInfoManager.cpp
+index 38e7679249..9383e97074 100644
+--- a/xbmc/GUIInfoManager.cpp
++++ b/xbmc/GUIInfoManager.cpp
+@@ -6758,6 +6758,14 @@ const infomap playlist[] =       {{ "length",           PLAYLIST_LENGTH },
+ ///     the old `Player.Recording` infolabel.
+ ///     <p>
+ ///   }
++///   \table_row3{   <b>`PVR.IsPlayingActiveRecording`</b>,
++///                  \anchor PVR_IsPlayingActiveRecording
++///                  _boolean_,
++///     @return **True** if PVR is currently playing an in progress recording.
++///     <p><hr>
++///     @skinning_v19 **[New Infolabel]** \link PVR_IsPlayingActiveRecording `PVR.IsPlayingActiveRecording`\endlink
++///     <p>
++///   }
+ ///   \table_row3{   <b>`PVR.TimeshiftProgressPlayPos`</b>,
+ ///                  \anchor PVR_TimeshiftProgressPlayPos
+ ///                  _integer_,
+@@ -6878,6 +6886,7 @@ const infomap pvr[] =            {{ "isrecording",              PVR_IS_RECORDING
+                                   { "channelnumberinput",         PVR_CHANNEL_NUMBER_INPUT },
+                                   { "canrecordplayingchannel",    PVR_CAN_RECORD_PLAYING_CHANNEL },
+                                   { "isrecordingplayingchannel",  PVR_IS_RECORDING_PLAYING_CHANNEL },
++                                  { "isplayingactiverecording",   PVR_IS_PLAYING_ACTIVE_RECORDING },
+                                   { "timeshiftprogressplaypos",   PVR_TIMESHIFT_PROGRESS_PLAY_POS },
+                                   { "timeshiftprogressepgstart",  PVR_TIMESHIFT_PROGRESS_EPG_START },
+                                   { "timeshiftprogressepgend",    PVR_TIMESHIFT_PROGRESS_EPG_END },
+diff --git a/xbmc/guilib/guiinfo/GUIInfoLabels.h b/xbmc/guilib/guiinfo/GUIInfoLabels.h
+index 233b315edc..128a1003fe 100644
+--- a/xbmc/guilib/guiinfo/GUIInfoLabels.h
++++ b/xbmc/guilib/guiinfo/GUIInfoLabels.h
+@@ -526,7 +526,8 @@
+ #define PVR_IS_PLAYING_EPGTAG       (PVR_CONDITIONS_START + 16)
+ #define PVR_CAN_RECORD_PLAYING_CHANNEL    (PVR_CONDITIONS_START + 17)
+ #define PVR_IS_RECORDING_PLAYING_CHANNEL  (PVR_CONDITIONS_START + 18)
+-#define PVR_CONDITIONS_END          PVR_IS_RECORDING_PLAYING_CHANNEL
++#define PVR_IS_PLAYING_ACTIVE_RECORDING   (PVR_CONDITIONS_START + 19)
++#define PVR_CONDITIONS_END          PVR_IS_PLAYING_ACTIVE_RECORDING
+ 
+ #define PVR_STRINGS_START           1200
+ #define PVR_NEXT_RECORDING_CHANNEL  (PVR_STRINGS_START)
+diff --git a/xbmc/pvr/PVRGUIInfo.cpp b/xbmc/pvr/PVRGUIInfo.cpp
+index 9be9d36067..b11b43a411 100644
+--- a/xbmc/pvr/PVRGUIInfo.cpp
++++ b/xbmc/pvr/PVRGUIInfo.cpp
+@@ -78,6 +78,7 @@ void CPVRGUIInfo::ResetProperties(void)
+   m_bIsPlayingEncryptedStream   = false;
+   m_bIsRecordingPlayingChannel  = false;
+   m_bCanRecordPlayingChannel    = false;
++  m_bIsPlayingActiveRecording   = false;
+   m_bHasTVChannels              = false;
+   m_bHasRadioChannels           = false;
+ 
+@@ -239,6 +240,7 @@ void CPVRGUIInfo::UpdateMisc(void)
+   bool       bHasRadioChannels         = bStarted && CServiceBroker::GetPVRManager().ChannelGroups()->GetGroupAllRadio()->HasChannels();
+   bool bCanRecordPlayingChannel        = bStarted && CServiceBroker::GetPVRManager().CanRecordOnPlayingChannel();
+   bool bIsRecordingPlayingChannel      = bStarted && CServiceBroker::GetPVRManager().IsRecordingOnPlayingChannel();
++  bool bIsPlayingActiveRecording       = bStarted && CServiceBroker::GetPVRManager().IsPlayingActiveRecording();
+   std::string strPlayingTVGroup        = (bStarted && bIsPlayingTV) ? CServiceBroker::GetPVRManager().GetPlayingGroup(false)->GroupName() : "";
+   std::string strPlayingRadioGroup     = (bStarted && bIsPlayingRadio) ? CServiceBroker::GetPVRManager().GetPlayingGroup(true)->GroupName() : "";
+ 
+@@ -257,6 +259,7 @@ void CPVRGUIInfo::UpdateMisc(void)
+   m_strPlayingRadioGroup      = strPlayingRadioGroup;
+   m_bCanRecordPlayingChannel  = bCanRecordPlayingChannel;
+   m_bIsRecordingPlayingChannel = bIsRecordingPlayingChannel;
++  m_bIsPlayingActiveRecording = bIsPlayingActiveRecording;
+ }
+ 
+ void CPVRGUIInfo::UpdateTimeshiftData(void)
+@@ -1353,6 +1356,9 @@ bool CPVRGUIInfo::GetPVRBool(const CFileItem *item, const CGUIInfo &info, bool&
+     case PVR_IS_RECORDING_PLAYING_CHANNEL:
+       bValue = m_bIsRecordingPlayingChannel;
+       return true;
++    case PVR_IS_PLAYING_ACTIVE_RECORDING:
++      bValue = m_bIsPlayingActiveRecording;
++      return true;
+   }
+   return false;
+ }
+diff --git a/xbmc/pvr/PVRGUIInfo.h b/xbmc/pvr/PVRGUIInfo.h
+index 9d3e05ab59..811a57f284 100644
+--- a/xbmc/pvr/PVRGUIInfo.h
++++ b/xbmc/pvr/PVRGUIInfo.h
+@@ -134,6 +134,7 @@ namespace PVR
+     bool                            m_bHasRadioChannels;
+     bool                            m_bCanRecordPlayingChannel;
+     bool                            m_bIsRecordingPlayingChannel;
++    bool                            m_bIsPlayingActiveRecording;
+     std::string                     m_strPlayingTVGroup;
+     std::string                     m_strPlayingRadioGroup;
+ 
+diff --git a/xbmc/pvr/PVRManager.cpp b/xbmc/pvr/PVRManager.cpp
+index f9b75841a9..c611c37cf2 100644
+--- a/xbmc/pvr/PVRManager.cpp
++++ b/xbmc/pvr/PVRManager.cpp
+@@ -694,6 +694,11 @@ bool CPVRManager::IsRecordingOnPlayingChannel(void) const
+   return currentChannel && CServiceBroker::GetPVRManager().Timers()->IsRecordingOnChannel(*currentChannel);
+ }
+ 
++bool CPVRManager::IsPlayingActiveRecording(void) const
++{
++  return IsStarted() && m_playingRecording ? m_playingRecording->IsInProgress() : false;
++}
++
+ bool CPVRManager::CanRecordOnPlayingChannel(void) const
+ {
+   const CPVRChannelPtr currentChannel = GetPlayingChannel();
+diff --git a/xbmc/pvr/PVRManager.h b/xbmc/pvr/PVRManager.h
+index ff2e7c1bd8..24f4da94a8 100644
+--- a/xbmc/pvr/PVRManager.h
++++ b/xbmc/pvr/PVRManager.h
+@@ -288,6 +288,12 @@ namespace PVR
+     bool IsRecordingOnPlayingChannel(void) const;
+ 
+     /*!
++     * @brief Check if an active recording is playing.
++     * @return True if an in-progress (active) recording is playing, false otherwise.
++     */
++    bool IsPlayingActiveRecording(void) const;
++
++    /*!
+      * @brief Check whether the currently playing channel can be recorded.
+      * @return True if there is a playing channel that can be recorded, false otherwise.
+      */
