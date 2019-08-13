@@ -1,0 +1,16 @@
+diff --git a/xbmc/cores/VideoPlayer/VideoPlayer.cpp b/xbmc/cores/VideoPlayer/VideoPlayer.cpp
+index d8840ce440..cebaf158e1 100644
+--- a/xbmc/cores/VideoPlayer/VideoPlayer.cpp
++++ b/xbmc/cores/VideoPlayer/VideoPlayer.cpp
+@@ -1879,9 +1879,9 @@ void CVideoPlayer::HandlePlaySpeed()
+         SetCaching(CACHESTATE_INIT);
+     }
+ 
+-    // if audio stream stalled, wait until demux queue filled 10%
++    // if audio stream stalled, wait until demux queue filled 50%
+     if (m_pInputStream->IsRealtime() &&
+-        (m_CurrentAudio.id < 0 || m_VideoPlayerAudio->GetLevel() > 10))
++        (m_CurrentAudio.id < 0 || m_VideoPlayerAudio->GetLevel() > 50))
+     {
+       SetCaching(CACHESTATE_INIT);
+     }
