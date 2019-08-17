@@ -1,0 +1,23 @@
+diff --git a/xbmc/cores/VideoPlayer/DVDCodecs/Video/AMLCodec.cpp b/xbmc/cores/VideoPlayer/DVDCodecs/Video/AMLCodec.cpp
+index 10e73cc..fe5be9a 100644
+--- a/xbmc/cores/VideoPlayer/DVDCodecs/Video/AMLCodec.cpp
++++ b/xbmc/cores/VideoPlayer/DVDCodecs/Video/AMLCodec.cpp
+@@ -2107,6 +2107,8 @@ float CAMLCodec::GetTimeSize()
+ 
+ CDVDVideoCodec::VCReturn CAMLCodec::GetPicture(VideoPicture *pVideoPicture)
+ {
++  std::string vfmt;
++
+   if (!m_opened)
+     return CDVDVideoCodec::VC_ERROR;
+ 
+@@ -2139,6 +2141,9 @@ CDVDVideoCodec::VCReturn CAMLCodec::GetPicture(VideoPicture *pVideoPicture)
+     usleep(5000);
+   }
+ 
++  if (!SysfsUtils::GetString("/sys/class/deinterlace/di0/frame_format", vfmt) && (vfmt.size() > 4))
++    m_processInfo.SetVideoInterlaced(vfmt.compare("progressive"));
++
+   return CDVDVideoCodec::VC_NONE;
+ }
+ 
