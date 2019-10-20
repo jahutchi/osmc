@@ -1,0 +1,48 @@
+diff --git a/xbmc/pvr/windows/GUIWindowPVRRecordings.cpp b/xbmc/pvr/windows/GUIWindowPVRRecordings.cpp
+index 6609655..e6e5d86 100644
+--- a/xbmc/pvr/windows/GUIWindowPVRRecordings.cpp
++++ b/xbmc/pvr/windows/GUIWindowPVRRecordings.cpp
+@@ -21,12 +21,15 @@
+ #include "threads/SingleLock.h"
+ #include "utils/URIUtils.h"
+ #include "video/windows/GUIWindowVideoNav.h"
++#include "video/VideoLibraryQueue.h"
+ 
+ #include "pvr/PVRGUIActions.h"
+ #include "pvr/PVRManager.h"
+ #include "pvr/recordings/PVRRecordings.h"
+ #include "pvr/recordings/PVRRecordingsPath.h"
+ 
++#include "utils/log.h"
++
+ using namespace PVR;
+ 
+ CGUIWindowPVRRecordingsBase::CGUIWindowPVRRecordingsBase(bool bRadio, int id, const std::string &xmlFile) :
+@@ -88,6 +91,8 @@ void CGUIWindowPVRRecordingsBase::GetContextButtons(int itemNumber, CContextButt
+ 
+ bool CGUIWindowPVRRecordingsBase::OnAction(const CAction &action)
+ {
++  CLog::Log(LOGDEBUG, "JH: action detected: %d", action.GetID());
++
+   if (action.GetID() == ACTION_PARENT_DIR ||
+       action.GetID() == ACTION_NAV_BACK)
+   {
+@@ -98,6 +103,18 @@ bool CGUIWindowPVRRecordingsBase::OnAction(const CAction &action)
+       return true;
+     }
+   }
++  else if (action.GetID() == ACTION_TOGGLE_WATCHED)
++  {
++    CLog::Log(LOGDEBUG, "JH: action detected as ToggleWatched");
++    CFileItemPtr pItem = m_vecItems->Get(m_viewControl.GetSelectedItem());
++    if (!pItem->IsParentFolder() && pItem->HasPVRRecordingInfoTag())
++    {
++      CLog::Log(LOGDEBUG, "JH: Executing CVideoLibraryQueue::GetInstance().MarkAsWatched()");
++      CVideoLibraryQueue::GetInstance().MarkAsWatched(pItem, pItem->GetPVRRecordingInfoTag()->GetPlayCount() == 0);
++      return true;
++    }
++  }
++
+   return CGUIWindowPVRBase::OnAction(action);
+ }
+ 
