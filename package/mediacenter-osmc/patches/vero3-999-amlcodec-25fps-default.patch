@@ -1,0 +1,15 @@
+diff --git a/xbmc/cores/VideoPlayer/DVDCodecs/Video/AMLCodec.cpp b/xbmc/cores/VideoPlayer/DVDCodecs/Video/AMLCodec.cpp
+index 0a829f9..ddfffcf 100644
+--- a/xbmc/cores/VideoPlayer/DVDCodecs/Video/AMLCodec.cpp
++++ b/xbmc/cores/VideoPlayer/DVDCodecs/Video/AMLCodec.cpp
+@@ -1585,6 +1585,10 @@ bool CAMLCodec::OpenDecoder(CDVDStreamInfo &hints)
+     }
+   }
+ 
++  //if video rate is zero then fallback to 25fps
++  if (am_private->video_rate == 0)
++    am_private->video_rate = 3840;
++
+   // handle orientation
+   am_private->video_rotation_degree = 0;
+   if (hints.orientation == 90)
