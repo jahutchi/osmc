@@ -1,5 +1,5 @@
 diff --git a/xbmc/pvr/windows/GUIWindowPVRRecordings.cpp b/xbmc/pvr/windows/GUIWindowPVRRecordings.cpp
-index 6609655..5dcbb0d 100644
+index 6609655..93f2a32 100644
 --- a/xbmc/pvr/windows/GUIWindowPVRRecordings.cpp
 +++ b/xbmc/pvr/windows/GUIWindowPVRRecordings.cpp
 @@ -21,6 +21,7 @@
@@ -20,9 +20,9 @@ index 6609655..5dcbb0d 100644
 +    if (pItem->IsParentFolder())
 +      return false;
 +
-+    if (pItem && (pItem->HasVideoInfoTag() || pItem->m_bIsFolder))
++    if (pItem && (pItem->HasPVRRecordingInfoTag() || pItem->m_bIsFolder))
 +    {
-+      CVideoLibraryQueue::GetInstance().MarkAsWatched(pItem, pItem->m_overlayIcon != CGUIListItem::ICON_OVERLAY_WATCHED);
++      CVideoLibraryQueue::GetInstance().MarkAsWatched(pItem, pItem->GetOverlayImage() != "OverlayWatched.png");
 +      return true;
 +    }
 +  }
