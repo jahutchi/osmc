@@ -1,0 +1,32 @@
+diff --git a/xbmc/pvr/windows/GUIWindowPVRRecordings.cpp b/xbmc/pvr/windows/GUIWindowPVRRecordings.cpp
+index 6609655..93f2a32 100644
+--- a/xbmc/pvr/windows/GUIWindowPVRRecordings.cpp
++++ b/xbmc/pvr/windows/GUIWindowPVRRecordings.cpp
+@@ -21,6 +21,7 @@
+ #include "threads/SingleLock.h"
+ #include "utils/URIUtils.h"
+ #include "video/windows/GUIWindowVideoNav.h"
++#include "video/VideoLibraryQueue.h"
+ 
+ #include "pvr/PVRGUIActions.h"
+ #include "pvr/PVRManager.h"
+@@ -98,6 +99,19 @@ bool CGUIWindowPVRRecordingsBase::OnAction(const CAction &action)
+       return true;
+     }
+   }
++  else if (action.GetID() == ACTION_TOGGLE_WATCHED)
++  {
++    CFileItemPtr pItem = m_vecItems->Get(m_viewControl.GetSelectedItem());
++    if (pItem->IsParentFolder())
++      return false;
++
++    if (pItem && (pItem->HasPVRRecordingInfoTag() || pItem->m_bIsFolder))
++    {
++      CVideoLibraryQueue::GetInstance().MarkAsWatched(pItem, pItem->GetOverlayImage() != "OverlayWatched.png");
++      return true;
++    }
++  }
++
+   return CGUIWindowPVRBase::OnAction(action);
+ }
+ 
