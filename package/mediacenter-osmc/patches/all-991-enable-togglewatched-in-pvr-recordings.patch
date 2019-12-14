@@ -1,30 +1,68 @@
+diff --git a/xbmc/pvr/PVRGUIDirectory.cpp b/xbmc/pvr/PVRGUIDirectory.cpp
+index e5033dd03e..f7d4181f3f 100644
+--- a/xbmc/pvr/PVRGUIDirectory.cpp
++++ b/xbmc/pvr/PVRGUIDirectory.cpp
+@@ -197,6 +197,11 @@ void GetSubDirectories(const CPVRRecordingsPath& recParentPath,
+ 
+       // Assume all folders are watched, we'll change the overlay later
+       item->SetOverlayImage(CGUIListItem::ICON_OVERLAY_WATCHED, false);
++
++      item->SetProperty("totalepisodes", 0);
++      item->SetProperty("watchedepisodes", 0);
++      item->SetProperty("unwatchedepisodes", 0);
++
+       results.Add(item);
+     }
+     else
+@@ -206,8 +211,16 @@ void GetSubDirectories(const CPVRRecordingsPath& recParentPath,
+         item->m_dateTime = recording->RecordingTimeAsLocalTime();
+     }
+ 
++    item->IncrementProperty("totalepisodes", 1);
+     if (recording->GetPlayCount() == 0)
++    {
+       unwatchedFolders.insert(item);
++      item->IncrementProperty("unwatchedepisodes", 1);
++    }
++    else
++    {
++      item->IncrementProperty("watchedepisodes", 1);
++    }
+   }
+ 
+   // Change the watched overlay to unwatched for folders containing unwatched entries
 diff --git a/xbmc/pvr/windows/GUIWindowPVRRecordings.cpp b/xbmc/pvr/windows/GUIWindowPVRRecordings.cpp
-index 6609655..93f2a32 100644
+index 6609655a4d..dad7ed1457 100644
 --- a/xbmc/pvr/windows/GUIWindowPVRRecordings.cpp
 +++ b/xbmc/pvr/windows/GUIWindowPVRRecordings.cpp
-@@ -21,6 +21,7 @@
+@@ -20,6 +20,7 @@
+ #include "settings/SettingsComponent.h"
  #include "threads/SingleLock.h"
  #include "utils/URIUtils.h"
- #include "video/windows/GUIWindowVideoNav.h"
 +#include "video/VideoLibraryQueue.h"
+ #include "video/windows/GUIWindowVideoNav.h"
  
  #include "pvr/PVRGUIActions.h"
- #include "pvr/PVRManager.h"
-@@ -98,6 +99,19 @@ bool CGUIWindowPVRRecordingsBase::OnAction(const CAction &action)
+@@ -98,6 +99,24 @@ bool CGUIWindowPVRRecordingsBase::OnAction(const CAction &action)
        return true;
      }
    }
 +  else if (action.GetID() == ACTION_TOGGLE_WATCHED)
 +  {
-+    CFileItemPtr pItem = m_vecItems->Get(m_viewControl.GetSelectedItem());
-+    if (pItem->IsParentFolder())
++    const std::shared_ptr<CFileItem> pItem = m_vecItems->Get(m_viewControl.GetSelectedItem());
++    if (!pItem || pItem->IsParentFolder())
 +      return false;
 +
-+    if (pItem && (pItem->HasPVRRecordingInfoTag() || pItem->m_bIsFolder))
-+    {
-+      CVideoLibraryQueue::GetInstance().MarkAsWatched(pItem, pItem->GetOverlayImage() != "OverlayWatched.png");
-+      return true;
-+    }
++    bool bUnWatched;
++    if (pItem->HasPVRRecordingInfoTag())
++      bUnWatched = pItem->GetPVRRecordingInfoTag()->GetPlayCount() == 0;
++    else if (pItem->m_bIsFolder)
++      bUnWatched = pItem->GetProperty("unwatchedepisodes").asInteger() > 0;
++    else
++      return false;
++
++    CVideoLibraryQueue::GetInstance().MarkAsWatched(pItem, bUnWatched);
++    return true;
 +  }
 +
    return CGUIWindowPVRBase::OnAction(action);
