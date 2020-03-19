@@ -1,5 +1,5 @@
 diff --git a/xbmc/pvr/PVRGUIDirectory.cpp b/xbmc/pvr/PVRGUIDirectory.cpp
-index e5033dd03e..f7d4181f3f 100644
+index e5033dd..b1ae2d0 100644
 --- a/xbmc/pvr/PVRGUIDirectory.cpp
 +++ b/xbmc/pvr/PVRGUIDirectory.cpp
 @@ -197,6 +197,11 @@ void GetSubDirectories(const CPVRRecordingsPath& recParentPath,
@@ -14,7 +14,7 @@ index e5033dd03e..f7d4181f3f 100644
        results.Add(item);
      }
      else
-@@ -206,8 +211,16 @@ void GetSubDirectories(const CPVRRecordingsPath& recParentPath,
+@@ -206,8 +211,19 @@ void GetSubDirectories(const CPVRRecordingsPath& recParentPath,
          item->m_dateTime = recording->RecordingTimeAsLocalTime();
      }
  
@@ -28,11 +28,14 @@ index e5033dd03e..f7d4181f3f 100644
 +    {
 +      item->IncrementProperty("watchedepisodes", 1);
 +    }
++    item->SetLabel2(StringUtils::Format("%s / %s",
++        item->GetProperty("watchedepisodes").asString(),
++        item->GetProperty("totalepisodes").asString()));
    }
  
    // Change the watched overlay to unwatched for folders containing unwatched entries
 diff --git a/xbmc/pvr/windows/GUIWindowPVRRecordings.cpp b/xbmc/pvr/windows/GUIWindowPVRRecordings.cpp
-index 6609655a4d..dad7ed1457 100644
+index 6609655..dad7ed1 100644
 --- a/xbmc/pvr/windows/GUIWindowPVRRecordings.cpp
 +++ b/xbmc/pvr/windows/GUIWindowPVRRecordings.cpp
 @@ -20,6 +20,7 @@
