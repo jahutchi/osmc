@@ -1,0 +1,73 @@
+diff --git a/xbmc/pvr/PVRGUIDirectory.cpp b/xbmc/pvr/PVRGUIDirectory.cpp
+index e5033dd..b1ae2d0 100644
+--- a/xbmc/pvr/PVRGUIDirectory.cpp
++++ b/xbmc/pvr/PVRGUIDirectory.cpp
+@@ -197,6 +197,11 @@ void GetSubDirectories(const CPVRRecordingsPath& recParentPath,
+ 
+       // Assume all folders are watched, we'll change the overlay later
+       item->SetOverlayImage(CGUIListItem::ICON_OVERLAY_WATCHED, false);
++
++      item->SetProperty("totalepisodes", 0);
++      item->SetProperty("watchedepisodes", 0);
++      item->SetProperty("unwatchedepisodes", 0);
++
+       results.Add(item);
+     }
+     else
+@@ -206,8 +211,19 @@ void GetSubDirectories(const CPVRRecordingsPath& recParentPath,
+         item->m_dateTime = recording->RecordingTimeAsLocalTime();
+     }
+ 
++    item->IncrementProperty("totalepisodes", 1);
+     if (recording->GetPlayCount() == 0)
++    {
+       unwatchedFolders.insert(item);
++      item->IncrementProperty("unwatchedepisodes", 1);
++    }
++    else
++    {
++      item->IncrementProperty("watchedepisodes", 1);
++    }
++    item->SetLabel2(StringUtils::Format("%s / %s",
++        item->GetProperty("watchedepisodes").asString(),
++        item->GetProperty("totalepisodes").asString()));
+   }
+ 
+   // Change the watched overlay to unwatched for folders containing unwatched entries
+diff --git a/xbmc/pvr/windows/GUIWindowPVRRecordings.cpp b/xbmc/pvr/windows/GUIWindowPVRRecordings.cpp
+index 6609655..dad7ed1 100644
+--- a/xbmc/pvr/windows/GUIWindowPVRRecordings.cpp
++++ b/xbmc/pvr/windows/GUIWindowPVRRecordings.cpp
+@@ -20,6 +20,7 @@
+ #include "settings/SettingsComponent.h"
+ #include "threads/SingleLock.h"
+ #include "utils/URIUtils.h"
++#include "video/VideoLibraryQueue.h"
+ #include "video/windows/GUIWindowVideoNav.h"
+ 
+ #include "pvr/PVRGUIActions.h"
+@@ -98,6 +99,24 @@ bool CGUIWindowPVRRecordingsBase::OnAction(const CAction &action)
+       return true;
+     }
+   }
++  else if (action.GetID() == ACTION_TOGGLE_WATCHED)
++  {
++    const std::shared_ptr<CFileItem> pItem = m_vecItems->Get(m_viewControl.GetSelectedItem());
++    if (!pItem || pItem->IsParentFolder())
++      return false;
++
++    bool bUnWatched;
++    if (pItem->HasPVRRecordingInfoTag())
++      bUnWatched = pItem->GetPVRRecordingInfoTag()->GetPlayCount() == 0;
++    else if (pItem->m_bIsFolder)
++      bUnWatched = pItem->GetProperty("unwatchedepisodes").asInteger() > 0;
++    else
++      return false;
++
++    CVideoLibraryQueue::GetInstance().MarkAsWatched(pItem, bUnWatched);
++    return true;
++  }
++
+   return CGUIWindowPVRBase::OnAction(action);
+ }
+ 
