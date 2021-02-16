@@ -1,0 +1,94 @@
+diff --git a/xbmc/cores/VideoPlayer/DVDDemuxers/DVDDemuxFFmpeg.cpp b/xbmc/cores/VideoPlayer/DVDDemuxers/DVDDemuxFFmpeg.cpp
+index a55bebc..4c1acbe 100644
+--- a/xbmc/cores/VideoPlayer/DVDDemuxers/DVDDemuxFFmpeg.cpp
++++ b/xbmc/cores/VideoPlayer/DVDDemuxers/DVDDemuxFFmpeg.cpp
+@@ -2239,43 +2239,43 @@ void CDVDDemuxFFmpeg::ParsePacket(AVPacket *pkt)
+   }
+ }
+ 
+ TRANSPORT_STREAM_STATE CDVDDemuxFFmpeg::TransportStreamAudioState()
+ {
+   AVStream* st = nullptr;
+   bool hasAudio = false;
+ 
+   if (m_program != UINT_MAX)
+   {
+     for (unsigned int i = 0; i < m_pFormatContext->programs[m_program]->nb_stream_indexes; i++)
+     {
+       int idx = m_pFormatContext->programs[m_program]->stream_index[i];
+       st = m_pFormatContext->streams[idx];
+       if (st->codecpar->codec_type == AVMEDIA_TYPE_AUDIO)
+       {
+         if (st->start_time != AV_NOPTS_VALUE)
+         {
+           if (!m_startTime)
+           {
+             m_startTime = av_rescale(st->cur_dts, st->time_base.num, st->time_base.den) - 0.000001;
+-            m_seekStream = i;
++            m_seekStream = idx;
+           }
+           return TRANSPORT_STREAM_STATE::READY;
+         }
+         hasAudio = true;
+       }
+     }
+   }
+   else
+   {
+     for (unsigned int i = 0; i < m_pFormatContext->nb_streams; i++)
+     {
+       st = m_pFormatContext->streams[i];
+       if (st->codecpar->codec_type == AVMEDIA_TYPE_AUDIO)
+       {
+         if (st->start_time != AV_NOPTS_VALUE)
+         {
+           if (!m_startTime)
+           {
+             m_startTime = av_rescale(st->cur_dts, st->time_base.num, st->time_base.den) - 0.000001;
+             m_seekStream = i;
+           }
+@@ -2292,43 +2292,43 @@ TRANSPORT_STREAM_STATE CDVDDemuxFFmpeg::TransportStreamAudioState()
+ TRANSPORT_STREAM_STATE CDVDDemuxFFmpeg::TransportStreamVideoState()
+ {
+   AVStream* st = nullptr;
+   bool hasVideo = false;
+ 
+   if (m_program == 0 && !m_pFormatContext->nb_programs)
+     return TRANSPORT_STREAM_STATE::NONE;
+ 
+   if (m_program != UINT_MAX)
+   {
+     for (unsigned int i = 0; i < m_pFormatContext->programs[m_program]->nb_stream_indexes; i++)
+     {
+       int idx = m_pFormatContext->programs[m_program]->stream_index[i];
+       st = m_pFormatContext->streams[idx];
+       if (st->codecpar->codec_type == AVMEDIA_TYPE_VIDEO)
+       {
+         if (st->codecpar->extradata)
+         {
+           if (!m_startTime)
+           {
+             m_startTime = av_rescale(st->cur_dts, st->time_base.num, st->time_base.den) - 0.000001;
+-            m_seekStream = i;
++            m_seekStream = idx;
+           }
+           return TRANSPORT_STREAM_STATE::READY;
+         }
+         hasVideo = true;
+       }
+     }
+   }
+   else
+   {
+     for (unsigned int i = 0; i < m_pFormatContext->nb_streams; i++)
+     {
+       st = m_pFormatContext->streams[i];
+       if (st->codecpar->codec_type == AVMEDIA_TYPE_VIDEO)
+       {
+         if (st->codecpar->extradata)
+         {
+           if (!m_startTime)
+           {
+             m_startTime = av_rescale(st->cur_dts, st->time_base.num, st->time_base.den) - 0.000001;
+             m_seekStream = i;
+           }
