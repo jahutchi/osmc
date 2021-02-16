@@ -1,0 +1,32 @@
+diff --git a/xbmc/cores/VideoPlayer/DVDDemuxers/DVDDemuxFFmpeg.cpp b/xbmc/cores/VideoPlayer/DVDDemuxers/DVDDemuxFFmpeg.cpp
+index 4c1acbe..2d089ae 100644
+--- a/xbmc/cores/VideoPlayer/DVDDemuxers/DVDDemuxFFmpeg.cpp
++++ b/xbmc/cores/VideoPlayer/DVDDemuxers/DVDDemuxFFmpeg.cpp
+@@ -1131,8 +1131,9 @@ DemuxPacket* CDVDDemuxFFmpeg::Read()
+     // we already check for a valid m_streams[pPacket->iStreamId] above
+     else if (stream->type == STREAM_AUDIO)
+     {
+-      if (static_cast<CDemuxStreamAudio*>(stream)->iChannels != m_pFormatContext->streams[pPacket->iStreamId]->codecpar->channels ||
+-          static_cast<CDemuxStreamAudio*>(stream)->iSampleRate != m_pFormatContext->streams[pPacket->iStreamId]->codecpar->sample_rate)
++      CDemuxStreamAudioFFmpeg* audiostream = dynamic_cast<CDemuxStreamAudioFFmpeg*>(stream);
++      if (audiostream && (audiostream->iChannels != m_pFormatContext->streams[pPacket->iStreamId]->codecpar->channels ||
++          audiostream->iSampleRate != m_pFormatContext->streams[pPacket->iStreamId]->codecpar->sample_rate))
+       {
+         // content has changed
+         stream = AddStream(pPacket->iStreamId);
+@@ -2064,6 +2065,15 @@ bool CDVDDemuxFFmpeg::IsProgramChange()
+       return true;
+     if (m_pFormatContext->streams[idx]->codecpar->codec_id != stream->codec)
+       return true;
++    if (m_pFormatContext->streams[idx]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO)
++    {
++      CDemuxStreamAudioFFmpeg* audiostream = dynamic_cast<CDemuxStreamAudioFFmpeg*>(stream);
++      if (audiostream &&
++          m_pFormatContext->streams[idx]->codecpar->channels != audiostream->iChannels)
++      {
++        return true;
++      }
++    }
+     if (m_pFormatContext->streams[idx]->codecpar->extradata_size != static_cast<int>(stream->ExtraSize))
+       return true;
+   }
