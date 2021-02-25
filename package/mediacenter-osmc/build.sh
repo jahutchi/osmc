@@ -32,6 +32,8 @@ then
 	out=$(pwd)/files
 	make clean
 	mount -t proc proc /proc >/dev/null 2>&1
+	# Build from stable sources
+	sudo sed -i 's/apt.osmc.tv buster-devel/apt.osmc.tv buster/' /etc/apt/sources.list
 	update_sources
 	handle_dep "autopoint"
 	handle_dep "automake"
