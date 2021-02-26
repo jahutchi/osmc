@@ -149,6 +149,15 @@ then
                 handle_dep "armv7-libbluray-dev-osmc"
                 handle_dep "armv7-libsqlite-dev-osmc"
 		handle_dep "libamcodec-dev-osmc"
+                mkdir /usr/osmc/include/amcodec
+                mv /usr/osmc/include/audio_priv.h /usr/osmc/include/amcodec
+                mv /usr/osmc/include/codec.h /usr/osmc/include/amcodec
+                mv /usr/osmc/include/codec_error.h /usr/osmc/include/amcodec
+                mv /usr/osmc/include/codec_msg.h /usr/osmc/include/amcodec
+                mv /usr/osmc/include/codec_type.h /usr/osmc/include/amcodec
+                mv /usr/osmc/include/amports/ /usr/osmc/include/amcodec
+                mv /usr/osmc/include/ppmgr/ /usr/osmc/include/amcodec
+                mv /usr/osmc/include/yuvplayer/ /usr/osmc/include/amcodec
 	fi
 	if [ "$1" == "pc" ]
 	then
